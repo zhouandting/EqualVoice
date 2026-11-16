@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <title>EqualVoice | Discussion simulator</title>
+  <link rel="stylesheet" href="style.css">
+  <script src="prototype.js" defer></script>
+</head>
+<body>
+  <header class="shell masthead">
+    <div>
+      <h1>EqualVoice</h1>
+      <p>Small-group discussion simulator</p>
+    </div>
+    <button data-action="reset" class="secondary">Reset scenario</button>
+  </header>
+  <main class="shell">
+    <section class="toolbar" aria-label="Simulation controls">
+      <label for="scenario">Scenario</label>
+      <select id="scenario">
+        <option value="floor">Request a turn</option>
+        <option value="repair">An uncertain reply</option>
+        <option value="prompt">Build on an idea</option>
+      </select>
+      <p id="scenario-description"></p>
+    </section>
+    <section class="discussion" aria-labelledby="discussion-title">
+      <p class="eyebrow">Fictional discussion</p>
+      <h2 id="discussion-title">How should AI tutors respond when students get stuck?</h2>
+      <div class="speech"><span class="avatar" aria-hidden="true">M</span><div><strong>Maya</strong><p>AI tutors should offer a hint before revealing the answer.</p></div></div>
+      <p id="floor-state" role="status"></p>
+    </section>
+    <nav aria-label="Simulated role views" class="roles">
+      <button data-action="student" aria-pressed="true">Student</button>
+      <button data-action="host" aria-pressed="false">Facilitator</button>
+      <button data-action="shared" aria-pressed="false">Group display</button>
+    </nav>
+    <section class="panel" id="role-panel" aria-labelledby="role-title">
+      <p id="role-channel" class="eyebrow"></p>
+      <h2 id="role-title"></h2>
+      <div id="role-content"></div>
+    </section>
+    <div id="announcement" role="status" class="visually-hidden"></div>
+    <p class="scope">Review controls switch between roles in one browser. All people, timing cues and model outputs are simulated.</p>
+  </main>
+</body>
+</html>
