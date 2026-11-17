@@ -1,0 +1,67 @@
+<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#eef1ea">
+  <title>EqualVoice | Discussion workspace</title>
+  <link rel="stylesheet" href="discussion.css">
+  <script src="discussion.js" defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <a class="brand" href="discussion.html"><span class="brand-mark" aria-hidden="true">≋</span> EqualVoice</a>
+    <a href="index.html">Turn-taking demo <span aria-hidden="true">↗</span></a>
+  </header>
+
+  <main class="shell">
+    <div class="intro">
+      <p class="eyebrow">Discussion workspace</p>
+      <h1>How should AI tutors help students get unstuck?</h1>
+      <p class="subtitle">Explore hints, answers and when a student should keep trying on their own.</p>
+    </div>
+
+    <div class="workspace">
+      <aside class="review" aria-label="Review controls">
+        <h2>View as</h2>
+        <nav class="views" aria-label="Discussion roles">
+          <button type="button" data-view="student" aria-pressed="true">Student</button>
+          <button type="button" data-view="facilitator" aria-pressed="false">Facilitator</button>
+          <button type="button" data-view="group" aria-pressed="false">Group</button>
+        </nav>
+        <form id="replay-form">
+          <h2>Replay setup</h2>
+          <label for="starting-point">Starting discussion</label>
+          <select id="starting-point" name="startingPoint">
+            <option value="unanswered">Unanswered idea</option>
+            <option value="active">Active exchange</option>
+          </select>
+          <label for="prompt-type">Prompt condition</label>
+          <select id="prompt-type" name="promptType">
+            <option value="contextual">Peer-based prompt</option>
+            <option value="general">General invitation</option>
+          </select>
+          <button type="submit" class="button-outline">Start new replay</button>
+          <p class="small">Starts a fresh fictional session and clears this replay’s activity.</p>
+        </form>
+      </aside>
+
+      <section class="conversation" aria-labelledby="conversation-title">
+        <header class="conversation-header">
+          <div>
+            <p class="eyebrow">Shared with the group</p>
+            <h2 id="conversation-title">Discussion</h2>
+          </div>
+          <p id="discussion-state" class="state" role="status"></p>
+        </header>
+        <ol id="messages" class="messages" aria-label="Discussion messages"></ol>
+        <div id="composer" class="composer" hidden></div>
+      </section>
+
+      <aside id="side-panel" class="side-panel" aria-labelledby="role-title" hidden></aside>
+    </div>
+    <p class="prototype-note">Local prototype. Peer messages and timing cues are simulated. Student replies are entered in this browser.</p>
+    <div id="announcement" class="visually-hidden" role="status" aria-live="polite"></div>
+  </main>
+</body>
+</html>
