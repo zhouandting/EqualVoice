@@ -1,12 +1,14 @@
 # EqualVoice
 
-README prose word count 342.
+README prose word count 445.
 
 ## Project status
 
 EqualVoice is a browser prototype for small university discussion groups. It replays an optional turn request, a clarification after an uncertain reply and two versions of a private discussion prompt. The student, facilitator and group display are three views of one local session. The interface, request queue, cancellation, facilitator controls and prompt display run in the browser. The conversation, timing cues and model output are scripted. Role labels describe the intended audience in the simulation. Authentication, multi-device delivery, live speech capture and live model calls are planned.
 
 ## Run and inspect
+
+Open `discussion.html` for the discussion workspace. Choose an unanswered idea or active exchange and one prompt condition per replay. The Student view supports private invitations, linked drafts, explicit sharing and interruption feedback. The Facilitator view can replay peer replies to test a stale invitation. The Group view shows shared messages. The workspace uses scripted peer messages and prompt rules, with locally entered student replies and session data held in memory.
 
 Open `index.html` in a modern browser. No server, API key, package install or network access is required. Use the Scenario menu and switch roles with the three view buttons. Reset scenario clears the session. The prototype uses HTML, CSS and vanilla JavaScript. `prototype.js` contains the scenarios, state transitions and interface rendering.
 
@@ -22,6 +24,7 @@ Open `index.html` in a modern browser. No server, API key, package install or ne
 - Lab 3 compared a deliberately faulty interpretation of “Maybe later” with explicit confirmation. The prototype implements the revised branch and checks that clarification and cancellation leave no pending request.
 - The Assignment 1 comparison inspired the two private prompt variants. Both use the same student view. The contextual variant shows Maya’s source line beside the question.
 - Lab 4 informed the application’s action checks. An Edge replay verified role visibility, handoff, cancellation, both prompts and dismissal. The replay also checked keyboard activation, narrow-screen overflow and HTTP requests from the prototype.
+- The discussion workspace extends the Assignment 1 comparison to two discussion states. Browser checks covered linked replies, invitations expiring after peer replies, preservation of private drafts, the general comparison condition and optional interruption feedback.
 
 ## AI assistance
 
