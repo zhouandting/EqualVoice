@@ -1,6 +1,6 @@
 # EqualVoice
 
-README prose word count 361.
+README prose word count 342.
 
 ## Project status
 
@@ -22,8 +22,6 @@ Open `index.html` in a modern browser. No server, API key, package install or ne
 - Lab 3 compared a deliberately faulty interpretation of “Maybe later” with explicit confirmation. The prototype implements the revised branch and checks that clarification and cancellation leave no pending request.
 - The Assignment 1 comparison inspired the two private prompt variants. Both use the same student view. The contextual variant shows Maya’s source line beside the question.
 - Lab 4 informed the application’s action checks. An Edge replay verified role visibility, handoff, cancellation, both prompts and dismissal. The replay also checked keyboard activation, narrow-screen overflow and HTTP requests from the prototype.
-
-The examples use fictional dialogue. The project report accompanies the coursework submission and contains the architecture, storyboards and references.
 
 ## AI assistance
 
