@@ -1,6 +1,6 @@
 # EqualVoice
 
-README prose word count 387.
+README prose word count 342.
 
 ## Project status
 
@@ -25,4 +25,4 @@ Open `index.html` in a modern browser. No server, API key, package install or ne
 
 ## AI assistance
 
-OpenAI Codex helped turn the lab walkthroughs into HTML, CSS and JavaScript, draft the README and report, and automate Edge checks. Codex checked the action paths and captured the illustrated states from the running prototype. The examples use fictional dialogue. The project report accompanies the coursework submission and contains the architecture, storyboards and references.
+Codex helped organise ideas, draft documentation and translate text.
