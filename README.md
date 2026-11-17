@@ -1,6 +1,6 @@
 # EqualVoice
 
-README prose word count 445.
+README prose word count 463.
 
 ## Project status
 
@@ -8,7 +8,7 @@ EqualVoice is a browser prototype for small university discussion groups. It rep
 
 ## Run and inspect
 
-Open `discussion.html` for the discussion workspace. Choose an unanswered idea or active exchange and one prompt condition per replay. The Student view supports private invitations, linked drafts, explicit sharing and interruption feedback. The Facilitator view can replay peer replies to test a stale invitation. The Group view shows shared messages. The workspace uses scripted peer messages and prompt rules, with locally entered student replies and session data held in memory.
+Open `discussion.html` for the discussion workspace. Choose a sample replay or Custom discussion, and select one prompt condition per session. For a custom session, enter a topic and use Facilitator to add named participants’ ideas or attach replies to earlier posts. The latest peer idea and its linked replies determine when automatic invitations are offered or withdrawn. The Student view supports private invitations, linked drafts, explicit sharing and interruption feedback. The Group view shows shared messages. Prompt wording follows local rules, and session data is held in memory.
 
 Open `index.html` in a modern browser. No server, API key, package install or network access is required. Use the Scenario menu and switch roles with the three view buttons. Reset scenario clears the session. The prototype uses HTML, CSS and vanilla JavaScript. `prototype.js` contains the scenarios, state transitions and interface rendering.
 
