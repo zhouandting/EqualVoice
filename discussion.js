@@ -160,6 +160,7 @@ function renderPeerForm() {
     return `<option value="${reply.id}">${escapeHtml(`${reply.author} · ${summary}`)}</option>`;
   }).join('');
   return `<form id="peer-form" class="peer-form">
+    <h3>Add a participant post</h3>
     <label for="peer-author">Participant name</label>
     <input id="peer-author" name="author" type="text" required maxlength="40" placeholder="e.g. Sam">
     <label for="peer-reply-to">Post as</label>
@@ -178,8 +179,10 @@ function renderFacilitator({kind, idea}) {
     waiting: `The latest idea${idea ? ` from ${escapeHtml(idea.author)}` : ''} is awaiting a reply. Private invitations depend on the student’s preference.`,
     active: 'The latest idea has a linked reply. Automatic invitations are paused.',
   }[kind];
-  const controls = state.custom ? renderPeerForm() : kind === 'waiting'
-    ? `<div class="actions">${makeButton('advance', 'Replay peer replies')}</div>` : '';
+  const controls = state.custom ? renderPeerForm() : `<div class="actions">
+    ${kind === 'waiting' ? makeButton('advance', 'Replay peer replies') : ''}
+    ${makeButton('custom-setup', 'Use your own topic', {outline:true})}
+  </div>`;
   return `<p class="eyebrow">Facilitator view</p>
     <h2 id="role-title">Discussion state</h2>
     <p>${description}</p>
@@ -208,6 +211,14 @@ function focusAfterRender(selector) {
   if (!next) return;
   if (!next.matches('button, input, textarea, select, a')) next.tabIndex = -1;
   next.focus();
+}
+
+function updateDiscussionSetup() {
+  const custom = startingPoint.value === 'custom';
+  document.querySelector('#custom-setup').hidden = !custom;
+  topicInput.disabled = !custom;
+  topicInput.required = custom;
+  document.querySelector('#start-discussion').textContent = custom ? 'Start custom discussion' : 'Start new replay';
 }
 
 function say(message) {
@@ -295,6 +306,12 @@ document.addEventListener('click', (event) => {
     render();
     return;
   }
+  if (view === 'facilitator' && action === 'custom-setup') {
+    startingPoint.value = 'custom';
+    updateDiscussionSetup();
+    topicInput.focus();
+    return;
+  }
   if (view === 'facilitator' && action === 'advance' && !state.custom && discussionStatus().kind === 'waiting') {
     addPosts(peerExchange);
     render();
@@ -317,13 +334,7 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('change', (event) => {
-  if (event.target === startingPoint) {
-    const custom = startingPoint.value === 'custom';
-    document.querySelector('#custom-setup').hidden = !custom;
-    topicInput.disabled = !custom;
-    topicInput.required = custom;
-    document.querySelector('#start-discussion').textContent = custom ? 'Start custom discussion' : 'Start new replay';
-  }
+  if (event.target === startingPoint) updateDiscussionSetup();
   if (event.target.id !== 'allow-invites' || view !== 'student') return;
   state.allowInvites = event.target.checked;
   if (!state.allowInvites && state.offer === 'available') state.offer = 'quiet';
