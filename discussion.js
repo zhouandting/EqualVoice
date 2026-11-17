@@ -1,14 +1,5 @@
 'use strict';
 
-const sampleTopic = 'How should AI tutors help students get unstuck?';
-const firstIdea = {
-  id: 1, author: 'Maya', time: '10:12',
-  body: 'AI tutors should give a hint before revealing the answer. That gives students a chance to finish the problem themselves.',
-};
-const peerExchange = [
-  {id: 2, author: 'Leo', time: '10:13', parentId: 1, move: 'Question', body: 'Could a hint make things harder if the student has misunderstood the whole problem?'},
-  {id: 3, author: 'Maya', time: '10:13', parentId: 2, move: 'Give a reason', body: 'It could. A first hint might work better if it asks the student to explain their starting point.'},
-];
 const questions = {
   reason: ['Give a reason', 'What reason or example would help the group assess this idea?'],
   question: ['Question the idea', 'When might this suggestion fail? What would you want to ask the person who proposed it?'],
@@ -19,26 +10,36 @@ const messages = document.querySelector('#messages');
 const panel = document.querySelector('#side-panel');
 const composer = document.querySelector('#composer');
 const replayForm = document.querySelector('#replay-form');
+const setupPage = document.querySelector('#discussion-setup');
+const sessionPage = document.querySelector('#discussion-session');
 const startingPoint = document.querySelector('#starting-point');
 const topicInput = document.querySelector('#custom-topic');
+const notesInput = document.querySelector('#prior-notes');
+const sessionNotes = document.querySelector('#discussion-notes');
 const topicHeading = document.querySelector('#discussion-topic');
 const stateLabel = document.querySelector('#discussion-state');
 const announcement = document.querySelector('#announcement');
 let view = 'student';
 let state;
 
-function startReplay(source, condition, customTopic = '') {
+function startDiscussion(topic, start, condition, customTopic, notes) {
   const allowInvites = state?.allowInvites ?? true;
-  const custom = source === 'custom';
-  const active = source === 'active';
+  const examplePosts = topic ? [topic.first, ...topic.replies].map((post) => ({
+    ...post, time: topic.group === 'previous' ? 'Earlier example' : 'Example post',
+  })) : [];
+  const seedCount = {empty: 0, unanswered: 1, active: examplePosts.length}[start];
+  const replies = examplePosts.slice(0, seedCount);
   state = {
-    topic: custom ? customTopic : sampleTopic, custom,
-    replies: custom ? [] : active ? [firstIdea, ...peerExchange] : [firstIdea],
-    nextId: 4, condition, allowInvites,
-    offer: custom || active || !allowInvites ? 'quiet' : 'available',
+    topic: topic?.title ?? customTopic, notes, replies,
+    exampleReplies: start === 'unanswered' ? examplePosts.slice(1) : [],
+    nextId: 1 + Math.max(0, ...examplePosts.map((post) => post.id)),
+    condition, allowInvites,
+    offer: seedCount === 1 && allowInvites ? 'available' : 'quiet',
     prompt: null, draft: null, invitationSeen: false,
     opened: false, repliesFromPrompt: 0, rating: '',
   };
+  view = replies.length ? 'student' : 'facilitator';
+  sessionNotes.open = false;
 }
 
 function escapeHtml(value) {
@@ -65,8 +66,10 @@ function makeButton(action, text, {outline = false, value = '', pressed} = {}) {
 
 function renderDiscussion({kind}) {
   topicHeading.textContent = state.topic;
-  stateLabel.textContent = {empty: 'Waiting for an idea', waiting: 'Idea awaiting a reply', active: 'Active exchange'}[kind];
+  stateLabel.textContent = {empty: 'No posts yet', waiting: 'No reply yet', active: 'Replies have started'}[kind];
   stateLabel.classList.toggle('active', kind === 'active');
+  sessionNotes.hidden = !state.notes;
+  document.querySelector('#notes-text').textContent = state.notes;
   document.querySelector('#empty-discussion').hidden = state.replies.length > 0;
   messages.innerHTML = state.replies.map((reply) => {
     const parent = byId(reply.parentId);
@@ -179,19 +182,22 @@ function renderFacilitator({kind, idea}) {
     waiting: `The latest idea${idea ? ` from ${escapeHtml(idea.author)}` : ''} is awaiting a reply. Private invitations depend on the student’s preference.`,
     active: 'The latest idea has a linked reply. Automatic invitations are paused.',
   }[kind];
-  const controls = state.custom ? renderPeerForm() : `<div class="actions">
-    ${kind === 'waiting' ? makeButton('advance', 'Replay peer replies') : ''}
-    ${makeButton('custom-setup', 'Use your own topic', {outline:true})}
-  </div>`;
+  const replay = canReplayReplies() ? `<div class="actions">${makeButton('advance', 'Add example replies', {outline:true})}</div>` : '';
   return `<p class="eyebrow">Facilitator view</p>
     <h2 id="role-title">Discussion state</h2>
     <p>${description}</p>
-    ${controls}
+    ${replay}
+    ${renderPeerForm()}
     <dl class="metrics">
       <div><dt>Messages</dt><dd>${state.replies.length}</dd></div>
       <div><dt>Linked replies</dt><dd>${linked}</dd></div>
       <div><dt>Student contributions</dt><dd>${students}</dd></div>
     </dl>`;
+}
+
+function canReplayReplies() {
+  const {kind, idea} = discussionStatus();
+  return kind === 'waiting' && state.exampleReplies[0]?.parentId === idea.id;
 }
 
 function render() {
@@ -213,12 +219,43 @@ function focusAfterRender(selector) {
   next.focus();
 }
 
-function updateDiscussionSetup() {
-  const custom = startingPoint.value === 'custom';
+function renderTopicChoices() {
+  for (const group of ['new', 'previous']) {
+    document.querySelector(`#${group}-topics`).innerHTML = discussionTopics.filter((topic) => topic.group === group).map((topic) => `
+      <label class="topic-card">
+        <input type="radio" name="topicChoice" value="${escapeHtml(topic.id)}">
+        <span><strong>${escapeHtml(topic.title)}</strong><span>${escapeHtml(topic.description)}</span></span>
+      </label>`).join('');
+  }
+}
+
+function updateDiscussionSetup(choice) {
+  const custom = choice === 'custom';
+  const topic = discussionTopics.find((example) => example.id === choice);
+  document.querySelector('#session-options').hidden = !choice;
+  document.querySelector('#starting-point-field').hidden = custom;
+  startingPoint.disabled = !topic;
+  if (topic) startingPoint.value = topic.group === 'previous' ? 'active' : 'empty';
   document.querySelector('#custom-setup').hidden = !custom;
   topicInput.disabled = !custom;
   topicInput.required = custom;
-  document.querySelector('#start-discussion').textContent = custom ? 'Start custom discussion' : 'Start new replay';
+  notesInput.disabled = !custom;
+  document.querySelector('#start-discussion').disabled = !choice;
+}
+
+function showSetup() {
+  sessionPage.hidden = true;
+  setupPage.hidden = false;
+  document.querySelector('[data-action="return-to-discussion"]').hidden = !state;
+  document.querySelector('#reset-notice').hidden = !state;
+  focusAfterRender('#setup-title');
+}
+
+function showDiscussion() {
+  setupPage.hidden = true;
+  sessionPage.hidden = false;
+  render();
+  focusAfterRender(view === 'facilitator' ? '#peer-author' : '#discussion-topic');
 }
 
 function say(message) {
@@ -306,14 +343,17 @@ document.addEventListener('click', (event) => {
     render();
     return;
   }
-  if (view === 'facilitator' && action === 'custom-setup') {
-    startingPoint.value = 'custom';
-    updateDiscussionSetup();
-    topicInput.focus();
+  if (action === 'change-topic') {
+    showSetup();
     return;
   }
-  if (view === 'facilitator' && action === 'advance' && !state.custom && discussionStatus().kind === 'waiting') {
-    addPosts(peerExchange);
+  if (action === 'return-to-discussion') {
+    showDiscussion();
+    return;
+  }
+  if (view === 'facilitator' && action === 'advance' && canReplayReplies()) {
+    addPosts(state.exampleReplies);
+    state.exampleReplies = [];
     render();
     focusAfterRender('#role-title');
     say('Peer replies added. Automatic invitations paused.');
@@ -334,7 +374,7 @@ document.addEventListener('input', (event) => {
 });
 
 document.addEventListener('change', (event) => {
-  if (event.target === startingPoint) updateDiscussionSetup();
+  if (event.target.name === 'topicChoice') updateDiscussionSetup(event.target.value);
   if (event.target.id !== 'allow-invites' || view !== 'student') return;
   state.allowInvites = event.target.checked;
   if (!state.allowInvites && state.offer === 'available') state.offer = 'quiet';
@@ -356,20 +396,19 @@ document.addEventListener('submit', (event) => {
   if (event.target === replayForm) {
     event.preventDefault();
     const input = new FormData(replayForm);
-    const custom = startingPoint.value === 'custom';
-    const topic = custom ? requiredText(topicInput, 'Enter a discussion topic.') : '';
-    if (custom && !topic) return;
-    startReplay(startingPoint.value, input.get('promptType'), topic);
-    if (custom) view = 'facilitator';
-    render();
-    if (custom) focusAfterRender('#peer-author');
-    say(custom ? 'Custom discussion ready.' : 'New replay ready.');
+    const choice = input.get('topicChoice');
+    const topic = discussionTopics.find((example) => example.id === choice);
+    const customTopic = choice === 'custom' ? requiredText(topicInput, 'Enter a discussion topic.') : '';
+    if (!topic && !customTopic) return;
+    startDiscussion(topic, topic ? startingPoint.value : 'empty', input.get('promptType'), customTopic, input.get('priorNotes')?.trim() ?? '');
+    showDiscussion();
+    say('Discussion ready.');
   }
   if (event.target.id === 'reply-form' && view === 'student') {
     event.preventDefault();
     shareReply();
   }
-  if (event.target.id === 'peer-form' && state.custom && view === 'facilitator') {
+  if (event.target.id === 'peer-form' && view === 'facilitator') {
     event.preventDefault();
     const {author: name, body: message, replyTo} = event.target.elements;
     const author = requiredText(name, 'Enter a participant name.');
@@ -384,5 +423,4 @@ document.addEventListener('submit', (event) => {
   }
 });
 
-startReplay('unanswered', 'contextual');
-render();
+renderTopicChoices();

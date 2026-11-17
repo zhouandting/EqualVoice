@@ -6,66 +6,106 @@
   <meta name="theme-color" content="#eef1ea">
   <title>EqualVoice | Discussion workspace</title>
   <link rel="stylesheet" href="discussion.css">
+  <script src="discussion-topics.js" defer></script>
   <script src="discussion.js" defer></script>
 </head>
 <body>
   <header class="topbar">
-    <a class="brand" href="discussion.html"><span class="brand-mark" aria-hidden="true">≋</span> EqualVoice</a>
+    <span class="brand"><span class="brand-mark" aria-hidden="true">≋</span> EqualVoice</span>
     <a href="index.html">Turn-taking demo <span aria-hidden="true">↗</span></a>
   </header>
 
   <main class="shell">
-    <div class="intro">
-      <p class="eyebrow">Discussion workspace</p>
-      <h1 id="discussion-topic">How should AI tutors help students get unstuck?</h1>
-    </div>
+    <section id="discussion-setup" aria-labelledby="setup-title">
+      <div class="intro">
+        <h1 id="setup-title">Choose a discussion topic</h1>
+        <p>Start with a campus example, revisit an earlier example or write your own topic.</p>
+      </div>
+      <form id="replay-form">
+        <fieldset class="topic-picker">
+          <legend class="visually-hidden">Discussion topic</legend>
+          <div class="topic-groups">
+            <div class="topic-group">
+              <h2>New topics</h2>
+              <div id="new-topics" class="topic-options"></div>
+            </div>
+            <div class="topic-group">
+              <h2>Topics discussed before</h2>
+              <div id="previous-topics" class="topic-options"></div>
+              <p class="small">Earlier posts are fictional examples for this prototype.</p>
+            </div>
+          </div>
+          <label class="topic-card custom-card">
+            <input type="radio" name="topicChoice" value="custom" required>
+            <span><strong>Write your own topic</strong><span>Add earlier discussion notes if you have them.</span></span>
+          </label>
+        </fieldset>
+        <div id="custom-setup" class="setup-fields" hidden>
+          <label for="custom-topic">Your discussion topic</label>
+          <input id="custom-topic" name="customTopic" type="text" maxlength="120" placeholder="Enter a topic" disabled>
+          <label for="prior-notes">Earlier discussion notes <span class="small">(optional)</span></label>
+          <textarea id="prior-notes" name="priorNotes" rows="3" maxlength="1600" placeholder="Paste a short recap for the group" disabled></textarea>
+        </div>
+        <div id="session-options" class="setup-options" hidden>
+          <div class="setup-fields" id="starting-point-field">
+            <label for="starting-point">Start the discussion</label>
+            <select id="starting-point" name="startingPoint">
+              <option value="empty">With no posts yet</option>
+              <option value="unanswered">With one example idea</option>
+              <option value="active">With an example idea and replies</option>
+            </select>
+          </div>
+          <div class="setup-fields">
+            <label for="prompt-type">Private prompt style</label>
+            <select id="prompt-type" name="promptType">
+              <option value="contextual">Help respond to a peer’s idea</option>
+              <option value="general">Ask for any contribution</option>
+            </select>
+          </div>
+        </div>
+        <div class="setup-footer">
+          <button id="start-discussion" type="submit" disabled>Start discussion</button>
+          <button type="button" data-action="return-to-discussion" class="button-outline" hidden>Back to current discussion</button>
+          <p id="reset-notice" class="small" hidden>Starting a discussion replaces the current session, including drafts and feedback.</p>
+        </div>
+      </form>
+    </section>
 
-    <div class="workspace">
-      <aside class="review" aria-label="Review controls">
-        <h2>View as</h2>
+    <section id="discussion-session" aria-labelledby="discussion-topic" hidden>
+      <div class="intro session-intro">
+        <div><p class="eyebrow">Current discussion</p><h1 id="discussion-topic"></h1></div>
+        <button type="button" data-action="change-topic" class="button-outline">Change topic</button>
+      </div>
+      <div class="role-bar">
+        <p class="small">View as</p>
         <nav class="views" aria-label="Discussion roles">
           <button type="button" data-view="student" aria-pressed="true">Student</button>
           <button type="button" data-view="facilitator" aria-pressed="false">Facilitator</button>
-          <button type="button" data-view="group" aria-pressed="false">Group</button>
+          <button type="button" data-view="group" aria-pressed="false">Group display</button>
         </nav>
-        <form id="replay-form">
-          <h2>Discussion setup</h2>
-          <label for="starting-point">Starting discussion</label>
-          <select id="starting-point" name="startingPoint">
-            <option value="unanswered">Unanswered idea</option>
-            <option value="active">Active exchange</option>
-            <option value="custom">Custom discussion</option>
-          </select>
-          <div id="custom-setup" hidden>
-            <label for="custom-topic">Discussion topic</label>
-            <input id="custom-topic" name="topic" type="text" maxlength="120" placeholder="Enter a topic" disabled>
-          </div>
-          <label for="prompt-type">Prompt condition</label>
-          <select id="prompt-type" name="promptType">
-            <option value="contextual">Peer-based prompt</option>
-            <option value="general">General invitation</option>
-          </select>
-          <button id="start-discussion" type="submit" class="button-outline">Start new replay</button>
-          <p class="small">Starting a session clears the current discussion and its feedback.</p>
-        </form>
-      </aside>
+      </div>
 
-      <section class="conversation" aria-labelledby="conversation-title">
-        <header class="conversation-header">
-          <div>
-            <p class="eyebrow">Shared with the group</p>
-            <h2 id="conversation-title">Discussion</h2>
-          </div>
-          <p id="discussion-state" class="state" role="status"></p>
-        </header>
-        <ol id="messages" class="messages" aria-label="Discussion messages"></ol>
-        <p id="empty-discussion" class="empty-discussion" hidden>Discussion posts will appear here.</p>
-        <div id="composer" class="composer" hidden></div>
-      </section>
-
-      <aside id="side-panel" class="side-panel" aria-labelledby="role-title" hidden></aside>
-    </div>
-    <p class="prototype-note">Local prototype. Roles share one browser. Sample sessions use fictional messages. Prompts use local rules.</p>
+      <div class="workspace">
+        <section class="conversation" aria-labelledby="conversation-title">
+          <header class="conversation-header">
+            <div>
+              <p class="eyebrow">Shared with the group</p>
+              <h2 id="conversation-title">Discussion</h2>
+            </div>
+            <p id="discussion-state" class="state" role="status"></p>
+          </header>
+          <details class="prior-notes" id="discussion-notes" hidden>
+            <summary>Earlier discussion notes</summary>
+            <p id="notes-text"></p>
+          </details>
+          <ol id="messages" class="messages" aria-label="Discussion messages"></ol>
+          <p id="empty-discussion" class="empty-discussion" hidden>Use Facilitator to add the first participant’s idea.</p>
+          <div id="composer" class="composer" hidden></div>
+        </section>
+        <aside id="side-panel" class="side-panel" aria-labelledby="role-title" hidden></aside>
+      </div>
+      <p class="prototype-note">Local prototype. Roles share one browser. Example posts are fictional. Prompts use local rules.</p>
+    </section>
     <div id="announcement" class="visually-hidden" role="status" aria-live="polite"></div>
   </main>
 </body>
