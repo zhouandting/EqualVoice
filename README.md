@@ -1,6 +1,6 @@
 # EqualVoice
 
-README prose word count 557.
+README prose word count 648.
 
 ## Project status
 
@@ -25,9 +25,14 @@ Open `index.html` in a modern browser. No server, API key, package install or ne
 - The Assignment 1 comparison inspired the two private prompt variants. Both use the same student view. The contextual variant shows Maya’s source line beside the question.
 - Lab 4 informed the application’s action checks. An Edge replay verified role visibility, handoff, cancellation, both prompts and dismissal. The replay also checked keyboard activation, narrow-screen overflow and HTTP requests from the prototype.
 - The discussion workspace extends the Assignment 1 comparison to two discussion states. Browser checks covered linked replies, invitations expiring after peer replies, preservation of private drafts, the general comparison condition and optional interruption feedback.
-- Custom discussion replaced the fixed topic with participant posts entered during the session. Edge checks used two distinct topics and verified that a linked reply closed an outdated invitation while preserving the student’s draft. A shortcut in Facilitator opened the custom topic field.
-- Feedback on v2 showed that the starting state could be mistaken for the topic. The new setup makes the choice of topic visible before asking how to start (IIS Lecture 05, slides 15–17). Change topic preserves the current session until Start discussion is selected (Lecture 06, slides 6 and 12). Earlier notes are shown separately and private prompts show their quoted discussion source (Lectures 10–11).
+- [Custom discussion](https://github.com/zhouandting/EqualVoice/commit/4aa8f66) replaced the fixed topic with participant posts entered during the session. Edge checks used two distinct topics and verified that a linked reply closed an outdated invitation while preserving the student’s draft. A shortcut in Facilitator opened the custom topic field.
+- Feedback on v2 showed that the starting state could be mistaken for the topic. The [new setup](https://github.com/zhouandting/EqualVoice/commit/44d16e0) makes the choice of topic visible before asking how to start (IIS Lecture 05, slides 15–17). Change topic preserves the current session until Start discussion is selected (Lecture 06, slides 6 and 12). Earlier notes are shown separately and private prompts show their quoted discussion source (Lectures 10–11).
+- The A2 report illustrates three v3 interactions: adding a post to a custom discussion, comparing two private prompt styles with the same starting post, and continuing a draft after an invitation expires. Edge checks covered these paths and the return from topic setup. The PDF accompanies the coursework submission.
 
 ## AI assistance
 
 Codex helped organise ideas, draft documentation and translate text.
+
+## Prototype development and verification
+
+The student’s walkthrough feedback identified the fixed topic and the confusing starting-state labels. This shaped the separate topic picker and the route back to a discussion in progress. The checks verified prompt attribution, draft retention and which content reached the group display.
