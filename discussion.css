@@ -54,7 +54,10 @@ h3 { font-size: 1.05rem; line-height: 1.25; }
 .topic-card:hover { border-color: #82a596; }
 .topic-card:has(input:checked) { border-color: var(--green); background: var(--light-green); }
 .custom-card { margin-top: 13px; }
-.setup-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; padding: 12px 0; }
+.session-options { margin: 14px 0; padding: 10px 14px; border: 1px solid var(--border); border-radius: 10px; background: var(--paper); }
+.session-options summary, .optional-feedback summary { cursor: pointer; font-weight: 650; }
+#setup-summary { margin-left: 7px; font-weight: 400; }
+.setup-options { display: grid; grid-template-columns: repeat(2, minmax(0, 1fr)); gap: 10px 16px; padding: 10px 0 2px; }
 .setup-fields, .peer-form { display: grid; gap: 6px; }
 .setup-fields label, .peer-form label { font-size: .87rem; font-weight: 650; }
 #custom-setup { margin-top: 11px; }
@@ -93,12 +96,19 @@ h3 { font-size: 1.05rem; line-height: 1.25; }
 .message .small { display: block; }
 .message .body { margin-top: 3px; white-space: pre-wrap; }
 .message .reply-link { margin-top: 6px; padding: 2px 0; border: 0; background: transparent; color: var(--green); min-height: 26px; font-size: .83rem; }
+.message:focus { outline: 2px solid #76a895; outline-offset: -2px; border-radius: 7px; }
 
 .side-panel .eyebrow { margin-bottom: 4px; }
 .side-panel h2 { margin-bottom: 11px; }
 .side-panel p + p, .side-panel h3 + p { margin-top: 7px; }
 .side-panel section + section { margin-top: 16px; padding-top: 16px; border-top: 1px solid var(--border); }
 .invitation { padding: 13px; background: var(--light-green); border-radius: 12px; }
+.prompt-style { display: grid; gap: 4px; margin-top: 10px; font-size: .85rem; font-weight: 650; }
+#prompt-question { margin-top: 9px; }
+.optional-feedback { margin-top: 15px; padding-top: 12px; border-top: 1px solid var(--border); font-size: .86rem; }
+.optional-feedback label { display: block; margin: 7px 0 4px; }
+.example-replay { padding: 10px 12px; margin-block: 12px; border: 1px solid var(--border); border-radius: 9px; }
+.example-replay button { margin-top: 7px; }
 blockquote { margin: 10px 0; padding: 8px 10px; border-left: 3px solid #7f9f8d; background: #eef3eb; border-radius: 0 6px 6px 0; }
 blockquote p { overflow-wrap: anywhere; white-space: pre-wrap; }
 blockquote cite { display: block; margin-top: 3px; font-style: normal; font-size: .79rem; color: var(--muted); }
@@ -108,7 +118,8 @@ blockquote cite { display: block; margin-top: 3px; font-style: normal; font-size
 .composer { padding: 13px 19px 17px; border-top: 1px solid var(--border); background: #f9faf5; border-radius: 0 0 16px 16px; }
 .composer label { display: block; font-weight: 650; margin-bottom: 5px; }
 .composer textarea { margin-block: 7px 1px; min-height: 100px; width: 100%; resize: vertical; display: block; padding: 8px; }
-.composer select { width: auto; max-width: 100%; }
+.draft-status { background: var(--light-green); border-radius: 8px; margin: 8px 0; padding: 8px 10px; font-size: .88rem; }
+.draft-status.changed { background: #f2eadb; color: #5f4521; }
 button, input, select, textarea { border: 1px solid var(--border); border-radius: 7px; }
 button { min-height: 37px; cursor: pointer; padding: 5px 9px; background: var(--green); color: white; font-size: .86rem; font-weight: 650; }
 button:hover:not(:disabled) { filter: brightness(.91); }
@@ -129,4 +140,5 @@ select, input[type='text'], .peer-form textarea, #prior-notes { padding: 7px; wi
   .workspace, .topic-groups, .setup-options { grid-template-columns: minmax(0, 1fr); }
   .session-intro { flex-direction: column; gap: 8px; }
   .conversation-header, .messages, .composer { padding-inline: 13px; }
+  #setup-summary { display: block; margin: 3px 0 0; }
 }

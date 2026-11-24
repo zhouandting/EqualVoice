@@ -43,26 +43,29 @@
         <div id="custom-setup" class="setup-fields" hidden>
           <label for="custom-topic">Your discussion topic</label>
           <input id="custom-topic" name="customTopic" type="text" maxlength="120" placeholder="Enter a topic" disabled>
-          <label for="prior-notes">Earlier discussion notes <span class="small">(optional)</span></label>
+          <label for="prior-notes">Earlier discussion notes <span class="small">(optional, shared with the group)</span></label>
           <textarea id="prior-notes" name="priorNotes" rows="3" maxlength="1600" placeholder="Paste a short recap for the group" disabled></textarea>
         </div>
-        <div id="session-options" class="setup-options" hidden>
-          <div class="setup-fields" id="starting-point-field">
-            <label for="starting-point">Start the discussion</label>
-            <select id="starting-point" name="startingPoint">
-              <option value="empty">With no posts yet</option>
-              <option value="unanswered">With one example idea</option>
-              <option value="active">With an example idea and replies</option>
-            </select>
+        <details id="session-options" class="session-options" hidden>
+          <summary>Starting options <span class="small" id="setup-summary"></span></summary>
+          <div class="setup-options">
+            <div class="setup-fields" id="starting-point-field">
+              <label for="starting-point">Start the discussion</label>
+              <select id="starting-point" name="startingPoint">
+                <option value="empty">With no posts yet</option>
+                <option value="unanswered">With one example idea</option>
+                <option value="active">With an example idea and replies</option>
+              </select>
+            </div>
+            <div class="setup-fields">
+              <label for="prompt-type">Private prompt style</label>
+              <select id="prompt-type" name="promptType">
+                <option value="contextual">Help respond to a peer’s idea</option>
+                <option value="general">Ask for any contribution</option>
+              </select>
+            </div>
           </div>
-          <div class="setup-fields">
-            <label for="prompt-type">Private prompt style</label>
-            <select id="prompt-type" name="promptType">
-              <option value="contextual">Help respond to a peer’s idea</option>
-              <option value="general">Ask for any contribution</option>
-            </select>
-          </div>
-        </div>
+        </details>
         <div class="setup-footer">
           <button id="start-discussion" type="submit" disabled>Start discussion</button>
           <button type="button" data-action="return-to-discussion" class="button-outline" hidden>Back to current discussion</button>

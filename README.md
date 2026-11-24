@@ -1,6 +1,6 @@
 # EqualVoice
 
-README prose word count 648.
+README prose word count 720.
 
 ## Project status
 
@@ -8,7 +8,7 @@ EqualVoice is a browser prototype for small university discussion groups. The di
 
 ## Run and inspect
 
-Open `discussion.html` and choose a new topic, an earlier example discussion or your own topic. Then choose how to start and which private prompt style to use. Earlier example posts are fictional. You can add your own recap under Earlier discussion notes. Use Facilitator to add named participants’ ideas or attach replies. Student offers private prompts, drafts, sharing and interruption feedback. Group display shows shared content. Prompt wording follows local rules. Session data is held in memory. Edit `discussion-topics.js` to change the example topics and posts.
+Open `discussion.html` and choose a new topic, an earlier example discussion or your own topic. Open Starting options to change the example posts loaded or the private prompt style. Earlier example posts are fictional. You can add your own recap under Earlier discussion notes. Use Facilitator to add named participants’ ideas or attach replies. In Student, choose a response approach in a contextual prompt, then draft and share when ready. Optional feedback appears after the prompt interaction. Group display shows shared content. Prompt wording follows local rules. Session data is held in memory. Edit `discussion-topics.js` to change the example topics and posts.
 
 Open `index.html` in a modern browser. No server, API key, package install or network access is required. Use the Scenario menu and switch roles with the three view buttons. Reset scenario clears the session. The prototype uses HTML, CSS and vanilla JavaScript. `prototype.js` contains the scenarios, state transitions and interface rendering.
 
@@ -27,7 +27,8 @@ Open `index.html` in a modern browser. No server, API key, package install or ne
 - The discussion workspace extends the Assignment 1 comparison to two discussion states. Browser checks covered linked replies, invitations expiring after peer replies, preservation of private drafts, the general comparison condition and optional interruption feedback.
 - [Custom discussion](https://github.com/zhouandting/EqualVoice/commit/4aa8f66) replaced the fixed topic with participant posts entered during the session. Edge checks used two distinct topics and verified that a linked reply closed an outdated invitation while preserving the student’s draft. A shortcut in Facilitator opened the custom topic field.
 - Feedback on v2 showed that the starting state could be mistaken for the topic. The [new setup](https://github.com/zhouandting/EqualVoice/commit/44d16e0) makes the choice of topic visible before asking how to start (IIS Lecture 05, slides 15–17). Change topic preserves the current session until Start discussion is selected (Lecture 06, slides 6 and 12). Earlier notes are shown separately and private prompts show their quoted discussion source (Lectures 10–11).
-- The A2 report illustrates three v3 interactions: adding a post to a custom discussion, comparing two private prompt styles with the same starting post, and continuing a draft after an invitation expires. Edge checks covered these paths and the return from topic setup. The PDF accompanies the coursework submission.
+- The A2 report illustrates three interactions: adding a post to a custom discussion, comparing two private prompt styles with the same starting post, and continuing a draft after an invitation expires. The PDF accompanies the coursework submission.
+- Feedback on v3 questioned controls that exposed a feature without supporting the current task. The revised workspace puts response approaches in one selector, moves the question and expiry message next to the draft, and presents optional feedback after the interaction. Edge checks covered the return from topic setup, rejection of a blank reply, draft retention when the facilitator added example replies and group visibility before and after sharing.
 
 ## AI assistance
 

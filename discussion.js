@@ -6,6 +6,7 @@ const questions = {
   extend: ['Build on the idea', 'What would you add to this idea to make it more specific or practical?'],
 };
 const ratings = ['None', 'A little', 'A lot'];
+const generalQuestion = 'Is there anything you would like to add to the discussion?';
 const messages = document.querySelector('#messages');
 const panel = document.querySelector('#side-panel');
 const composer = document.querySelector('#composer');
@@ -13,6 +14,7 @@ const replayForm = document.querySelector('#replay-form');
 const setupPage = document.querySelector('#discussion-setup');
 const sessionPage = document.querySelector('#discussion-session');
 const startingPoint = document.querySelector('#starting-point');
+const promptType = document.querySelector('#prompt-type');
 const topicInput = document.querySelector('#custom-topic');
 const notesInput = document.querySelector('#prior-notes');
 const sessionNotes = document.querySelector('#discussion-notes');
@@ -36,6 +38,7 @@ function startDiscussion(topic, start, condition, customTopic, notes) {
     condition, allowInvites,
     offer: seedCount === 1 && allowInvites ? 'available' : 'quiet',
     prompt: null, draft: null, invitationSeen: false,
+    facilitatorDraft: {author: '', replyTo: '', body: ''},
     opened: false, repliesFromPrompt: 0, rating: '',
   };
   view = replies.length ? 'student' : 'facilitator';
@@ -58,10 +61,9 @@ function discussionStatus() {
   return {kind: addressed ? 'active' : 'waiting', idea};
 }
 
-function makeButton(action, text, {outline = false, value = '', pressed} = {}) {
+function makeButton(action, text, {outline = false} = {}) {
   const style = outline ? ' class="button-outline"' : '';
-  const toggle = pressed === undefined ? '' : ` aria-pressed="${pressed}"`;
-  return `<button type="button" data-action="${action}" data-value="${escapeHtml(value)}"${style}${toggle}>${text}</button>`;
+  return `<button type="button" data-action="${action}"${style}>${text}</button>`;
 }
 
 function renderDiscussion({kind}) {
@@ -76,12 +78,12 @@ function renderDiscussion({kind}) {
     const context = [parent ? `Reply to ${parent.author}` : '', reply.move].filter(Boolean).join(' · ');
     const author = escapeHtml(reply.author);
     const avatarStyle = reply.student ? ' A' : reply.author === 'Leo' ? ' L' : '';
-    return `<li class="message">
+    return `<li class="message" id="post-${reply.id}">
       <span class="avatar${avatarStyle}" aria-hidden="true">${escapeHtml(reply.author[0])}</span>
       <div>
         <strong>${author}</strong> <span class="small">${reply.time}${context ? ` · ${escapeHtml(context)}` : ''}</span>
         <p class="body">${escapeHtml(reply.body)}</p>
-        ${view === 'student' ? `<button type="button" class="reply-link" data-action="reply" data-value="${reply.id}" aria-label="Reply to ${author} at ${reply.time}">Reply</button>` : ''}
+        ${view === 'student' && !state.draft ? `<button type="button" class="reply-link" data-action="reply" data-value="${reply.id}" aria-label="Reply to ${author} at ${reply.time}">Reply</button>` : ''}
       </div>
     </li>`;
   }).join('');
@@ -95,10 +97,14 @@ function renderComposer() {
     return;
   }
   const parent = byId(draft.sourceId);
+  const guidance = draft.contextChanged
+    ? '<p class="draft-status changed" id="draft-guidance">The discussion has moved on. Your draft is still here.</p>'
+    : draft.fromPrompt ? `<p class="draft-status" id="draft-guidance">${draft.promptText}</p>` : '';
   composer.innerHTML = `<form id="reply-form">
     <label for="reply-body">${parent ? `Reply to ${escapeHtml(parent.author)}` : 'Add to the discussion'}</label>
-    <p class="small">Your reply will appear in the group discussion when you share it.</p>
-    <textarea id="reply-body" name="body" required maxlength="1600" placeholder="Write your response">${escapeHtml(draft.body)}</textarea>
+    <p class="small" id="draft-visibility">Private draft. Share reply posts it to the group.</p>
+    ${guidance}
+    <textarea id="reply-body" name="body" required maxlength="1600" placeholder="Write your response" aria-describedby="draft-visibility${guidance ? ' draft-guidance' : ''}">${escapeHtml(draft.body)}</textarea>
     <div class="actions">
       <button type="submit">Share reply</button>
       ${makeButton('discard-draft', 'Discard draft', {outline:true})}
@@ -107,6 +113,9 @@ function renderComposer() {
 }
 
 function renderInvitation({kind}) {
+  if (state.draft) {
+    return '<section><p>Continue or discard your draft in the discussion area.</p></section>';
+  }
   if (kind === 'empty') {
     return '<section><p>Prompts become available after a peer adds an idea.</p></section>';
   }
@@ -116,10 +125,12 @@ function renderInvitation({kind}) {
     const content = source
       ? `<h3>Respond to a peer’s idea</h3>
         <blockquote><p>${escapeHtml(source.body)}</p><cite>${escapeHtml(source.author)} · ${source.time}</cite></blockquote>
-        <p>${questions[move][1]}</p>
-        <div class="actions">${Object.entries(questions).map(([key, [label]]) =>
-          makeButton('move', label, {outline:key !== move, value:key, pressed:key === move})).join('')}</div>`
-      : '<h3>General invitation</h3><p>Is there anything you would like to add to the discussion?</p>';
+        <label class="prompt-style" for="prompt-approach">How would you like to respond?
+          <select id="prompt-approach">${Object.entries(questions).map(([key, [label]]) =>
+            `<option value="${key}"${key === move ? ' selected' : ''}>${label}</option>`).join('')}</select>
+        </label>
+        <p id="prompt-question" role="status">${questions[move][1]}</p>`
+      : `<h3>General invitation</h3><p>${generalQuestion}</p>`;
     return `<section class="invitation" aria-label="Private prompt">
       ${content}
       <div class="actions">${makeButton('use-prompt', 'Draft a reply')}${makeButton('dismiss', 'Dismiss prompt', {outline:true})}</div>
@@ -133,7 +144,7 @@ function renderInvitation({kind}) {
     </section>`;
   }
   const note = {
-    stale: state.draft ? 'The discussion moved on. You can still edit your draft.' : 'The discussion moved on. You can ask for a new prompt.',
+    stale: 'The discussion moved on. You can ask for a new prompt.',
     dismissed: 'The invitation has closed.',
     used: 'Your reply is in the discussion.',
     quiet: kind === 'active' ? 'The group is exchanging ideas. Automatic invitations are paused.' : 'Automatic invitations are off.',
@@ -142,14 +153,21 @@ function renderInvitation({kind}) {
 }
 
 function renderStudent(status) {
-  const feedback = state.invitationSeen || state.opened ? `<section>
-    <h3>How interruptive was the support?</h3>
-    <div class="actions">${ratings.map((rating) => makeButton('rate', rating, {outline:state.rating !== rating, value:rating, pressed:state.rating === rating})).join('')}</div>
+  const canRate = (state.invitationSeen || state.opened) && !state.draft && !state.prompt &&
+    ['dismissed', 'stale', 'used'].includes(state.offer);
+  const feedback = canRate ? `<details class="optional-feedback"${state.rating ? ' open' : ''}>
+    <summary>Optional feedback</summary>
+    <label for="interruption-rating">How intrusive did the prompt feel?</label>
+    <select id="interruption-rating">
+      <option value="">Choose an answer</option>
+      ${ratings.map((rating) => `<option${state.rating === rating ? ' selected' : ''}>${rating}</option>`).join('')}
+    </select>
+    <p class="small" id="feedback-result" role="status">${state.rating ? 'Feedback saved for this session.' : ''}</p>
     <dl class="metrics">
       <div><dt>Prompt opened</dt><dd>${state.opened ? 'Yes' : 'No'}</dd></div>
       <div><dt>Replies drafted from a prompt and shared</dt><dd>${state.repliesFromPrompt}</dd></div>
     </dl>
-  </section>` : '';
+  </details>` : '';
   return `<p class="eyebrow">Private student tools</p>
     <h2 id="role-title">Your discussion support</h2>
     ${renderInvitation(status)}
@@ -158,18 +176,20 @@ function renderStudent(status) {
 }
 
 function renderPeerForm() {
+  const draft = state.facilitatorDraft;
   const targets = state.replies.map((reply) => {
     const summary = reply.body.length > 50 ? `${reply.body.slice(0, 50)}…` : reply.body;
-    return `<option value="${reply.id}">${escapeHtml(`${reply.author} · ${summary}`)}</option>`;
+    return `<option value="${reply.id}"${draft.replyTo === String(reply.id) ? ' selected' : ''}>${escapeHtml(`${reply.author} · ${summary}`)}</option>`;
   }).join('');
+  const replyControl = targets ? `<label for="peer-reply-to">Respond to a post</label>
+    <select id="peer-reply-to" name="replyTo"><option value="">Start a new idea</option>${targets}</select>` : '';
   return `<form id="peer-form" class="peer-form">
     <h3>Add a participant post</h3>
     <label for="peer-author">Participant name</label>
-    <input id="peer-author" name="author" type="text" required maxlength="40" placeholder="e.g. Sam">
-    <label for="peer-reply-to">Post as</label>
-    <select id="peer-reply-to" name="replyTo"><option value="">New idea</option>${targets}</select>
+    <input id="peer-author" name="author" type="text" required maxlength="40" placeholder="e.g. Sam" value="${escapeHtml(draft.author)}">
+    ${replyControl}
     <label for="peer-body">Message</label>
-    <textarea id="peer-body" name="body" required maxlength="1600" placeholder="Enter a participant’s idea or reply"></textarea>
+    <textarea id="peer-body" name="body" required maxlength="1600" placeholder="Enter a participant’s idea or reply">${escapeHtml(draft.body)}</textarea>
     <button type="submit">Add discussion post</button>
   </form>`;
 }
@@ -182,7 +202,10 @@ function renderFacilitator({kind, idea}) {
     waiting: `The latest idea${idea ? ` from ${escapeHtml(idea.author)}` : ''} is awaiting a reply. Private invitations depend on the student’s preference.`,
     active: 'The latest idea has a linked reply. Automatic invitations are paused.',
   }[kind];
-  const replay = canReplayReplies() ? `<div class="actions">${makeButton('advance', 'Add example replies', {outline:true})}</div>` : '';
+  const replay = canReplayReplies() ? `<div class="example-replay">
+    <p class="small">Continue the example to see what happens when a peer has already replied.</p>
+    ${makeButton('advance', 'Add example replies', {outline:true})}
+  </div>` : '';
   return `<p class="eyebrow">Facilitator view</p>
     <h2 id="role-title">Discussion state</h2>
     <p>${description}</p>
@@ -241,6 +264,12 @@ function updateDiscussionSetup(choice) {
   topicInput.required = custom;
   notesInput.disabled = !custom;
   document.querySelector('#start-discussion').disabled = !choice;
+  updateSetupSummary();
+}
+
+function updateSetupSummary() {
+  const start = startingPoint.disabled ? 'With no posts yet' : startingPoint.selectedOptions[0].textContent;
+  document.querySelector('#setup-summary').textContent = `${start} · ${promptType.selectedOptions[0].textContent}`;
 }
 
 function showSetup() {
@@ -255,7 +284,8 @@ function showDiscussion() {
   setupPage.hidden = true;
   sessionPage.hidden = false;
   render();
-  focusAfterRender(view === 'facilitator' ? '#peer-author' : '#discussion-topic');
+  if (view === 'student' && state.draft) focusAfterRender('#reply-body');
+  else focusAfterRender(view === 'facilitator' ? '#peer-author' : '#discussion-topic');
 }
 
 function say(message) {
@@ -263,7 +293,10 @@ function say(message) {
 }
 
 function draftReply(sourceId, move, fromPrompt = false) {
-  state.draft = {sourceId, move, fromPrompt, body: state.draft?.body ?? ''};
+  if (state.draft) return;
+  const promptText = fromPrompt ? (sourceId ? questions[move][1] : generalQuestion) : '';
+  state.draft = {sourceId, move, fromPrompt, promptText, body: '', contextChanged: false};
+  state.prompt = null;
   render();
   focusAfterRender('#reply-body');
 }
@@ -272,10 +305,13 @@ function addPosts(posts) {
   const previous = discussionStatus();
   state.replies.push(...posts);
   const current = discussionStatus();
-  if (previous.idea?.id !== current.idea?.id) {
+  const topicMoved = previous.idea?.id !== current.idea?.id;
+  const peersReplied = previous.kind === 'waiting' && current.kind === 'active';
+  if (state.draft?.fromPrompt && (topicMoved || peersReplied)) state.draft.contextChanged = true;
+  if (topicMoved) {
     state.prompt = null;
     state.offer = current.kind === 'waiting' && state.allowInvites ? 'available' : 'quiet';
-  } else if (previous.kind === 'waiting' && current.kind === 'active' && (state.offer === 'available' || state.prompt)) {
+  } else if (peersReplied && (state.offer === 'available' || state.prompt || state.draft?.fromPrompt)) {
     state.offer = 'stale';
     state.prompt = null;
   }
@@ -284,11 +320,14 @@ function addPosts(posts) {
 function shareReply() {
   const {body, sourceId, move, fromPrompt} = state.draft;
   if (!body.trim()) {
-    say('Write a message before sharing.');
+    const field = document.querySelector('#reply-body');
+    field.setCustomValidity('Write a message before sharing.');
+    field.reportValidity();
     return;
   }
+  const id = state.nextId++;
   addPosts([{
-    id: state.nextId++, author: 'Ari', time: 'Now', body: body.trim(),
+    id, author: 'Ari', time: 'Now', body: body.trim(),
     parentId: sourceId, move: fromPrompt && sourceId ? questions[move][0] : '', student: true,
   }]);
   if (fromPrompt) state.repliesFromPrompt += 1;
@@ -296,23 +335,19 @@ function shareReply() {
   state.prompt = null;
   state.offer = 'used';
   render();
-  focusAfterRender('#conversation-title');
+  focusAfterRender(`#post-${id}`);
   say('Reply shared with the group.');
 }
 
 const studentActions = {
   'open-prompt': () => {
+    if (state.draft) return;
     const {kind, idea} = discussionStatus();
     const peer = kind === 'waiting' ? idea : state.replies.findLast((reply) => !reply.student);
     const source = state.condition === 'contextual' ? peer : null;
     state.prompt = {sourceId: source?.id, move: 'reason'};
     state.opened = true;
     return '[data-action="use-prompt"]';
-  },
-  move: (key) => {
-    state.prompt.move = key;
-    say(questions[key][1]);
-    return `[data-action="move"][data-value="${key}"]`;
   },
   'use-prompt': () => draftReply(state.prompt.sourceId, state.prompt.move, true),
   dismiss: () => {
@@ -323,14 +358,10 @@ const studentActions = {
   },
   reply: (id) => draftReply(Number(id), ''),
   'discard-draft': () => {
+    if (state.draft.fromPrompt && state.offer !== 'stale') state.offer = 'dismissed';
     state.draft = null;
     say('Draft discarded.');
     return '#conversation-title';
-  },
-  rate: (rating) => {
-    state.rating = rating;
-    say('Feedback recorded for this replay.');
-    return `[data-action="rate"][data-value="${rating}"]`;
   },
 };
 
@@ -369,12 +400,23 @@ document.addEventListener('click', (event) => {
 });
 
 document.addEventListener('input', (event) => {
-  if (event.target.id === 'reply-body') state.draft.body = event.target.value;
-  if (event.target.matches('#custom-topic, #peer-author, #peer-body')) event.target.setCustomValidity('');
+  const field = event.target;
+  if (field.id === 'reply-body') state.draft.body = field.value;
+  if (field.matches('#peer-author, #peer-reply-to, #peer-body')) state.facilitatorDraft[field.name] = field.value;
+  if (field.matches('#reply-body, #custom-topic, #peer-author, #peer-body')) field.setCustomValidity('');
 });
 
 document.addEventListener('change', (event) => {
   if (event.target.name === 'topicChoice') updateDiscussionSetup(event.target.value);
+  if (event.target === startingPoint || event.target === promptType) updateSetupSummary();
+  if (event.target.id === 'prompt-approach') {
+    state.prompt.move = event.target.value;
+    document.querySelector('#prompt-question').textContent = questions[state.prompt.move][1];
+  }
+  if (event.target.id === 'interruption-rating') {
+    state.rating = event.target.value;
+    document.querySelector('#feedback-result').textContent = state.rating ? 'Feedback saved for this session.' : '';
+  }
   if (event.target.id !== 'allow-invites' || view !== 'student') return;
   state.allowInvites = event.target.checked;
   if (!state.allowInvites && state.offer === 'available') state.offer = 'quiet';
@@ -415,8 +457,9 @@ document.addEventListener('submit', (event) => {
     if (!author) return;
     const body = requiredText(message, 'Enter a discussion post.');
     if (!body) return;
-    const parent = byId(Number(replyTo.value));
+    const parent = byId(Number(replyTo?.value));
     addPosts([{id: state.nextId++, author, body, parentId: parent?.id, time: 'Now'}]);
+    state.facilitatorDraft = {author: '', replyTo: '', body: ''};
     render();
     focusAfterRender('#peer-author');
     say('Discussion post added.');
